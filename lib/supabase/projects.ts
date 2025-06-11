@@ -5,8 +5,18 @@ type Project = Database["public"]["Tables"]["projects"]["Row"]
 type ProjectInsert = Database["public"]["Tables"]["projects"]["Insert"]
 type ProjectUpdate = Database["public"]["Tables"]["projects"]["Update"]
 
+// UUID validation helper
+function isValidUUID(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(uuid)
+}
+
 export class ProjectService {
   static async getProjects(userId: string): Promise<Project[]> {
+    if (!userId || !isValidUUID(userId)) {
+      throw new Error("Valid user ID is required")
+    }
+
     const { data, error } = await supabase
       .from("projects")
       .select("*")
@@ -21,6 +31,14 @@ export class ProjectService {
   }
 
   static async getProject(id: string, userId: string): Promise<Project | null> {
+    if (!userId || !isValidUUID(userId)) {
+      throw new Error("Valid user ID is required")
+    }
+
+    if (!id || !isValidUUID(id)) {
+      throw new Error("Valid project ID is required")
+    }
+
     const { data, error } = await supabase.from("projects").select("*").eq("id", id).eq("owner_id", userId).single()
 
     if (error) {
@@ -53,6 +71,14 @@ export class ProjectService {
   }
 
   static async updateProject(id: string, updates: ProjectUpdate, userId: string): Promise<Project> {
+    if (!userId || !isValidUUID(userId)) {
+      throw new Error("Valid user ID is required")
+    }
+
+    if (!id || !isValidUUID(id)) {
+      throw new Error("Valid project ID is required")
+    }
+
     const { data, error } = await supabase
       .from("projects")
       .update({
@@ -73,6 +99,14 @@ export class ProjectService {
   }
 
   static async deleteProject(id: string, userId: string): Promise<void> {
+    if (!userId || !isValidUUID(userId)) {
+      throw new Error("Valid user ID is required")
+    }
+
+    if (!id || !isValidUUID(id)) {
+      throw new Error("Valid project ID is required")
+    }
+
     const { error } = await supabase.from("projects").delete().eq("id", id).eq("owner_id", userId)
 
     if (error) {
@@ -81,6 +115,14 @@ export class ProjectService {
   }
 
   static async toggleStar(id: string, starred: boolean, userId: string): Promise<Project> {
+    if (!userId || !isValidUUID(userId)) {
+      throw new Error("Valid user ID is required")
+    }
+
+    if (!id || !isValidUUID(id)) {
+      throw new Error("Valid project ID is required")
+    }
+
     const { data, error } = await supabase
       .from("projects")
       .update({ starred, updated_at: new Date().toISOString() })
@@ -97,6 +139,10 @@ export class ProjectService {
   }
 
   static async getProjectStats(userId: string) {
+    if (!userId || !isValidUUID(userId)) {
+      throw new Error("Valid user ID is required")
+    }
+
     const { data: projects, error } = await supabase
       .from("projects")
       .select("status, documents_count")

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useParams } from "next/navigation"
+import { getMockUser } from "@/lib/auth"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -29,9 +30,12 @@ import { useProjects } from "@/hooks/use-projects"
 export default function WorkspacePage() {
   const params = useParams()
   const projectId = params.id as string
-  const userId = "user-1" // This would come from auth context
 
-  const { projects, loading: projectLoading } = useProjects()
+  // Use mock user for now - replace with real auth later
+  const mockUser = getMockUser()
+  const userId = mockUser.id
+
+  const { projects, loading: projectLoading } = useProjects(userId)
   const { messages, input, handleInputChange, handleSubmit, isLoading: chatLoading } = useChat(projectId, userId)
 
   const [activeTab, setActiveTab] = useState("chat")
