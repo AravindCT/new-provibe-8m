@@ -70,11 +70,26 @@ export function useAuth() {
   return context
 }
 
-// Mock user for development - replace with real auth
+export const MOCK_USER_ID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+
 export function getMockUser() {
   return {
-    id: "550e8400-e29b-41d4-a716-446655440000", // Valid UUID format
-    email: "demo@provibe.com",
-    name: "Demo User",
+    id: MOCK_USER_ID,
+    email: "sarah.chen@techcorp.com",
+    full_name: "Sarah Chen",
+    avatar_url: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150",
+    plan: "pro" as const,
+    company: "TechCorp Inc.",
+    role: "Senior Product Manager",
   }
+}
+
+export function validateUUID(uuid: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(uuid)
+}
+
+export function getCurrentUserId(): string {
+  // In a real app, this would get the user ID from auth context
+  return MOCK_USER_ID
 }
