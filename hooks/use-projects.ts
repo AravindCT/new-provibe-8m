@@ -7,17 +7,28 @@ import type { Database } from "@/lib/supabase/types"
 type Project = Database["public"]["Tables"]["projects"]["Row"]
 type ProjectUpdate = Database["public"]["Tables"]["projects"]["Update"]
 
-export function useProjects(userId: string) {
+export function useProjects(userId?: string) {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Load projects on mount
+  // Load projects on mount, but only if userId is provided
   useEffect(() => {
-    loadProjects()
+    if (userId) {
+      loadProjects()
+    } else {
+      setLoading(false)
+      setError("User ID is required")
+    }
   }, [userId])
 
   const loadProjects = async () => {
+    if (!userId) {
+      setError("User ID is required")
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
       setError(null)
@@ -37,6 +48,10 @@ export function useProjects(userId: string) {
     type: string
     status?: string
   }) => {
+    if (!userId) {
+      throw new Error("User ID is required")
+    }
+
     try {
       const newProject = await ProjectService.createProject({
         ...projectData,
@@ -57,6 +72,10 @@ export function useProjects(userId: string) {
   }
 
   const updateProject = async (projectId: string, updates: ProjectUpdate) => {
+    if (!userId) {
+      throw new Error("User ID is required")
+    }
+
     try {
       const updatedProject = await ProjectService.updateProject(projectId, updates, userId)
       setProjects((prev) => prev.map((p) => (p.id === projectId ? updatedProject : p)))
@@ -68,6 +87,10 @@ export function useProjects(userId: string) {
   }
 
   const deleteProject = async (projectId: string) => {
+    if (!userId) {
+      throw new Error("User ID is required")
+    }
+
     try {
       await ProjectService.deleteProject(projectId, userId)
       setProjects((prev) => prev.filter((p) => p.id !== projectId))
@@ -78,6 +101,10 @@ export function useProjects(userId: string) {
   }
 
   const toggleStar = async (projectId: string, starred: boolean) => {
+    if (!userId) {
+      throw new Error("User ID is required")
+    }
+
     try {
       const updatedProject = await ProjectService.toggleStar(projectId, starred, userId)
       setProjects((prev) => prev.map((p) => (p.id === projectId ? updatedProject : p)))
