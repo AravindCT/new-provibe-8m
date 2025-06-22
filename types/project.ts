@@ -3,34 +3,40 @@ export interface Project {
   name: string
   description: string
   status: "active" | "draft" | "complete" | "archived" | "paused"
-  lastUpdated: string
-  documentsCount: number
-  collaborators: number
-  progress: number
   type: "saas" | "mobile" | "api" | "ecommerce" | "other"
+  progress: number
+  owner_id: string
   starred: boolean
-  createdAt: string
-  owner: string
   tags: string[]
-  lastActivity: Activity[]
+  collaborators: number
+  documents_count: number
+  target_audience: string | null
+  market_size: string | null
+  business_model: string | null
+  key_features: string[] | null
+  tech_stack: string[] | null
+  timeline: string | null
+  budget_range: string | null
+  created_at: string
+  updated_at: string
+  last_updated: string
 }
 
 export interface Activity {
   id: string
-  type: "document_generated" | "export_completed" | "source_added" | "team_invite" | "project_created"
-  project: string
-  item: string
-  time: string
-  user?: string
+  user_id: string
+  project_id: string
+  action: string
+  description: string
+  metadata?: any
+  created_at: string
 }
 
 export interface UserStats {
   totalProjects: number
-  documentsGenerated: number
-  exportsThisMonth: number
-  teamMembers: number
-  storageUsed: number
-  storageLimit: number
+  activeProjects: number
+  completedProjects: number
+  totalDocuments: number
 }
 
 export interface Notification {

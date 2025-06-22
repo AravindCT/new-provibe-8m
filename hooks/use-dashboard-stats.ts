@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { ProjectService } from "@/lib/supabase/projects"
 
-interface DashboardStats {
+export interface DashboardStats {
   totalProjects: number
   activeProjects: number
   completedProjects: number
@@ -21,7 +21,12 @@ export function useDashboardStats(userId: string) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadStats()
+    if (userId) {
+      loadStats()
+    } else {
+      setLoading(false)
+      setError("User ID is required")
+    }
   }, [userId])
 
   const loadStats = async () => {
@@ -32,7 +37,7 @@ export function useDashboardStats(userId: string) {
       setStats(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load stats")
-      console.error("Error loading stats:", err)
+      console.error("Error loading dashboard stats:", err)
     } finally {
       setLoading(false)
     }
