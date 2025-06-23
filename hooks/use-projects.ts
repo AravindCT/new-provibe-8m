@@ -12,31 +12,47 @@ export function useProjects(userId?: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Load projects on mount, but only if userId is provided
+  // Load projects on mount
   useEffect(() => {
-    if (userId) {
-      loadProjects()
-    } else {
-      setLoading(false)
-      setError("User ID is required")
-    }
+    loadProjects()
   }, [userId])
 
   const loadProjects = async () => {
-    if (!userId) {
-      setError("User ID is required")
-      setLoading(false)
-      return
-    }
-
     try {
       setLoading(true)
       setError(null)
+
+      console.log("🔄 Loading projects with userId:", userId)
+
+      // Fetch projects - if no userId, get all projects
       const data = await ProjectService.getProjects(userId)
+
+      console.log("📦 Loaded projects:", data.length)
       setProjects(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load projects")
-      console.error("Error loading projects:", err)
+      const errorMessage = err instanceof Error ? err.message : "Failed to load projects"
+      setError(errorMessage)
+      console.error("❌ Error loading projects:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadAllProjects = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      console.log("🔄 Loading ALL projects")
+
+      const data = await ProjectService.getAllProjects()
+
+      console.log("📦 Loaded all projects:", data.length)
+      setProjects(data)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to load projects"
+      setError(errorMessage)
+      console.error("❌ Error loading all projects:", err)
     } finally {
       setLoading(false)
     }
@@ -48,14 +64,10 @@ export function useProjects(userId?: string) {
     type: string
     status?: string
   }) => {
-    if (!userId) {
-      throw new Error("User ID is required")
-    }
-
     try {
       const newProject = await ProjectService.createProject({
         ...projectData,
-        owner_id: userId,
+        owner_id: userId || "550e8400-e29b-41d4-a716-446655440001",
         progress: 0,
         starred: false,
         tags: [],
@@ -72,10 +84,6 @@ export function useProjects(userId?: string) {
   }
 
   const updateProject = async (projectId: string, updates: ProjectUpdate) => {
-    if (!userId) {
-      throw new Error("User ID is required")
-    }
-
     try {
       const updatedProject = await ProjectService.updateProject(projectId, updates, userId)
       setProjects((prev) => prev.map((p) => (p.id === projectId ? updatedProject : p)))
@@ -87,10 +95,6 @@ export function useProjects(userId?: string) {
   }
 
   const deleteProject = async (projectId: string) => {
-    if (!userId) {
-      throw new Error("User ID is required")
-    }
-
     try {
       await ProjectService.deleteProject(projectId, userId)
       setProjects((prev) => prev.filter((p) => p.id !== projectId))
@@ -101,10 +105,6 @@ export function useProjects(userId?: string) {
   }
 
   const toggleStar = async (projectId: string, starred: boolean) => {
-    if (!userId) {
-      throw new Error("User ID is required")
-    }
-
     try {
       const updatedProject = await ProjectService.toggleStar(projectId, starred, userId)
       setProjects((prev) => prev.map((p) => (p.id === projectId ? updatedProject : p)))
@@ -124,5 +124,6 @@ export function useProjects(userId?: string) {
     deleteProject,
     toggleStar,
     refetch: loadProjects,
+    loadAllProjects, // New method to load all projects
   }
 }

@@ -6,19 +6,37 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Search, Filter, Plus, Grid, List, Star, MoreHorizontal, Calendar, Users, FileText } from "lucide-react"
+import {
+  Search,
+  Filter,
+  Plus,
+  Grid,
+  List,
+  Star,
+  MoreHorizontal,
+  Calendar,
+  Users,
+  FileText,
+  RefreshCw,
+} from "lucide-react"
 import Link from "next/link"
 import { useProjects } from "@/hooks/use-projects"
 
 export default function ProjectsPage() {
   const userId = "550e8400-e29b-41d4-a716-446655440001"
-  const { projects, loading, error, toggleStar } = useProjects(userId)
+  const { projects, loading, error, toggleStar, loadAllProjects } = useProjects(userId)
 
   const [searchQuery, setSearchQuery] = useState("")
   const [filterStatus, setFilterStatus] = useState("all")
   const [filterType, setFilterType] = useState("all")
   const [sortBy, setSortBy] = useState("updated_at")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
+  const [showAllProjects, setShowAllProjects] = useState(false)
+
+  const handleLoadAllProjects = async () => {
+    setShowAllProjects(true)
+    await loadAllProjects()
+  }
 
   const filteredProjects = projects?.filter((project) => {
     const matchesSearch =
@@ -84,16 +102,11 @@ export default function ProjectsPage() {
     return (
       <div className="min-h-screen bg-slate-50">
         <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardContent className="p-6">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded mb-4"></div>
-                  <div className="h-2 bg-gray-200 rounded"></div>
-                </CardContent>
-              </Card>
-            ))}
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-indigo-600" />
+              <p className="text-slate-600">Loading projects...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -105,7 +118,11 @@ export default function ProjectsPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-red-600 mb-2">Error Loading Projects</h2>
-          <p className="text-slate-600">{error}</p>
+          <p className="text-slate-600 mb-4">{error}</p>
+          <Button onClick={handleLoadAllProjects}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try Loading All Projects
+          </Button>
         </div>
       </div>
     )
@@ -136,12 +153,18 @@ export default function ProjectsPage() {
               </Link>
             </nav>
           </div>
-          <Link href="/projects/new">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              New Project
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" onClick={handleLoadAllProjects}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              {showAllProjects ? "All Projects" : "Load All"}
             </Button>
-          </Link>
+            <Link href="/projects/new">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                New Project
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -149,8 +172,12 @@ export default function ProjectsPage() {
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Projects</h1>
-            <p className="text-slate-600">Manage and track all your product development projects</p>
+            <h1 className="text-3xl font-bold text-slate-800 mb-2">Projects {showAllProjects && "(All Projects)"}</h1>
+            <p className="text-slate-600">
+              {showAllProjects
+                ? `Showing all ${projects.length} projects in the database`
+                : `Manage and track your ${projects.length} product development projects`}
+            </p>
           </div>
           <div className="flex items-center space-x-2 mt-4 md:mt-0">
             <Button variant={viewMode === "grid" ? "default" : "outline"} size="sm" onClick={() => setViewMode("grid")}>
@@ -160,6 +187,17 @@ export default function ProjectsPage() {
               <List className="h-4 w-4" />
             </Button>
           </div>
+        </div>
+
+        {/* Debug Info */}
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+          <h3 className="font-semibold text-blue-800 mb-2">Debug Information:</h3>
+          <p className="text-blue-700 text-sm">
+            • Total projects loaded: {projects.length}
+            <br />• User ID: {userId}
+            <br />• Showing: {showAllProjects ? "All projects" : "User projects only"}
+            <br />• Supabase configured: {process.env.NEXT_PUBLIC_SUPABASE_URL ? "Yes" : "No"}
+          </p>
         </div>
 
         {/* Filters */}
@@ -374,12 +412,18 @@ export default function ProjectsPage() {
                 ? "Try adjusting your search or filters"
                 : "Get started by creating your first project"}
             </p>
-            <Link href="/projects/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Project
+            <div className="flex justify-center space-x-4">
+              <Button onClick={handleLoadAllProjects} variant="outline">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Load All Projects
               </Button>
-            </Link>
+              <Link href="/projects/new">
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Project
+                </Button>
+              </Link>
+            </div>
           </div>
         )}
       </div>
